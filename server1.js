@@ -4,6 +4,8 @@ const http = require('http');
 const https = require('https');
 const express = require('express');
 
+const elasticsearch=require('elasticsearch');
+
 const app = express();
 //const { Pool, Client } = require('pg')
 
@@ -25,6 +27,12 @@ require('dotenv').config();
 const dbpassword = process.env.dbpassword;
 const dbuid = process.env.dbuid;
 
+var client = new elasticsearch.Client( {  
+  hosts: [
+    'http://localhost:9200/',
+  ]
+});
+
 request = require('request');
 const bodyParser = require('body-parser');
 var wget=require('node-wget');
@@ -39,7 +47,6 @@ let web3 = require('web3');
 
 var convertHex = require('convert-hex')
 
-var connectionString = "postgres://trevor:trevor200@localhost:5432/blockchain";
 
 app.get("/api/ping", function(req, res){
   res.json({ messaage: "pong" });
@@ -72,6 +79,46 @@ app.post("/api/savetext", function(req, res) {
 });
 
 
+app.post("/api/queryES", function(req, res) {
+   var wordindex = req.body.wordindex;
+   var searchStr = 'wordindex:' + wordindex;
+
+client.search({
+    index: 'blockchain',
+    q: searchStr
+}).then(function(resp) {
+    console.log(resp);
+    //resp.hits.hits[0];
+//	x.hits.hits[2]._source
+    var numberRecs = resp.hits.total;
+var allresults = [];
+resp.hits.hits.forEach(function(item, index, array) {
+ var rec = {
+    wallet: item._source.wallet,
+    blockchainnetwork: item._source.blockchainnetwork,
+    ipfsimage: item._source.ipfsimage,
+    ipfstext: item._source.ipfstext,
+    wordindex: item._source.wordindex	 
+ }
+	allresults.push(rec);
+	console.log(rec);
+	//console.log(item, index);
+});
+var finalresp = {	
+    results: allresults
+}
+res.json({ message: "Correct", finalresp: finalresp});
+
+}, function(err) {
+    console.trace(err.message);
+    res.json({ message: "error", errmessage: err.message});
+
+});
+
+
+
+});
+
 app.post("/api/buildJson", function(req, res) {
     var blockchain = req.body.blockchain;
     var wallet = req.body.wallet;
@@ -90,6 +137,18 @@ let jsonIpfs = {
     ipfstexthash: ipfstexthash,
     ipfsimagehash: ipfsimagehash
 };
+let v = {
+  "name": "John Doe",
+  "vegetarian": false,
+  "birthDate": "1985-06-02",
+  "personalData": {
+    "age": 34,
+    "height": 1.784
+  },
+  "postalCode": "12345",
+  "nationality": "JP",
+  "occupation": "lawyer"
+}
 
 let datatext = JSON.stringify(jsonIpfs);
 
