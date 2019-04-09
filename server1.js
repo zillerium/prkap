@@ -5,7 +5,9 @@ const https = require('https');
 const express = require('express');
 
 const app = express();
-const { Pool, Client } = require('pg')
+//const { Pool, Client } = require('pg')
+
+const pg = require('pg');
 
 // Certificate
 const privateKey = fs.readFileSync('privkey.pem', 'utf8');
@@ -19,6 +21,10 @@ const credentials = {
 };
 
 require('dotenv').config();
+
+const dbpassword = process.env.dbpassword;
+const dbuid = process.env.dbuid;
+
 request = require('request');
 const bodyParser = require('body-parser');
 var wget=require('node-wget');
@@ -32,6 +38,8 @@ const ipfs = ipfsAPI('127.0.0.1', '5001', {protocol: 'http'})
 let web3 = require('web3');
 
 var convertHex = require('convert-hex')
+
+var connectionString = "postgres://trevor:trevor200@localhost:5432/blockchain";
 
 app.get("/api/ping", function(req, res){
   res.json({ messaage: "pong" });
@@ -94,6 +102,57 @@ let datatext = JSON.stringify(jsonIpfs);
 
 });
 
+app.post("/api/saveDB", function(req, res) {
+    var blockchain = req.body.blockchain;
+    var wallet = req.body.wallet;
+    var ipfstexthash=req.body.ipfstexthash;
+    var ipfsimagehash = req.body.ipfsimagehash;
+    var addedtext = req.body.addedtext;
+	var jsonipfshash = req.body.jsonipfshash;
+// build Json
+
+console.log(blockchain);
+        console.log(wallet);
+        console.log(ipfstexthash);
+        console.log(ipfsimagehash);
+
+const pool = new pg.Pool({
+    user: dbuid,
+    host: '127.0.0.1',
+    database: 'blockchain',
+    password: dbpassword,
+    port: '5432'});
+
+	var ipfs_key = jsonipfshash.replace("https://ipfs.io/ipfs/","");
+	var wordindex = addedtext;
+
+sqlinsert = "insert into ipfs (ipfs_key, wallet, blockchainnetwork, ipfsimage, ipfstext, wordindex) values (" +"\'"+ ipfs_key+"\'"+ "," +"\'"+ wallet+"\'"+ ","+"\'"+ blockchain+"\'"+","+"\'"+ ipfsimagehash+"\'"+","+"\'"+ ipfstexthash+"\'"+"," +"\'"+wordindex+"\'"+")";
+console.log(sqlinsert);
+
+pool.query(sqlinsert, (err, res) => {
+    console.log(err, res);
+    pool.end();
+});
+
+
+  //  pg.connect(connectionString,function(err,client,done) {
+  //     if(err){
+  //         console.log("not able to get connection "+ err);
+  //         res.status(400).send(err);
+  //     } 
+  //     client.query('SELECT * FROM student where id = $1', [1],function(err,result) {
+  //         done(); // closing the connection;
+  //         if(err){
+  //             console.log(err);
+  //             res.status(400).send(err);
+  //         }
+  //         res.status(200).send(result.rows);
+  //     });
+  //  });
+
+
+
+});
 
 
 

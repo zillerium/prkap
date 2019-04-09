@@ -67,6 +67,46 @@ function savetextbtn() {
     };
 }
 
+function saveDB() {
+
+    var blockchain = document.getElementById("blockchain").value;
+    var wallet = document.getElementById("wallet").value;
+    var ipfstexthash  = document.getElementById("ipfstexthash").innerHTML;
+    var ipfsimagehash  = document.getElementById("ipfsimagehash").innerHTML;
+	var addedtext = document.getElementById("addedtext").value;
+	var jsonipfshash = document.getElementById("jsonipfshash").href;
+
+    ipfstexthash=ipfstexthash.replace("https://ipfs.io/ipfs/","");
+    ipfsimagehash=ipfsimagehash.replace("https://ipfs.io/ipfs/","");
+
+    var xhttp = new XMLHttpRequest();
+    xhttp.open("POST", "https://prkap.app:3000/api/savedb", true);
+    xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+    xhttp.send("wallet=" + wallet + "&ipfstexthash=" + ipfstexthash + "&ipfsimagehash=" + ipfsimagehash + "&blockchain="+blockchain + "&addedtext="+addedtext + "&jsonipfshash="+jsonipfshash );
+    xhttp.onreadystatechange = function(){
+      var messageDiv = document.getElementById("message");
+      if (this.readyState == 4 && this.status == 200) {
+        var data = JSON.parse(this.response);
+        if (data.message != "Correct") {
+          printErrorMessage(
+            "innermessage",
+            "paramessage",
+            "save db failed"
+          );
+
+        } else {
+               filename = data.filename;
+               document.getElementById("jsonname").innerHTML=filename;
+               printSuccessMessage("innermessage", "paramessage", "Save DB Built");
+
+        }
+      }
+    };
+
+
+}
+
+
 
 function buildJson() {
 
