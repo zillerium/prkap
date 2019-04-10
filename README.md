@@ -8,3 +8,6 @@
 Postgres being used too atm.
 
 Orbit may be used later to decentralise data.
+
+ES link - 
+https://qbox.io/blog/integrating-elasticsearch-into-node-js-application

@@ -167,7 +167,7 @@ app.post("/api/saveDB", function(req, res) {
     var ipfstexthash=req.body.ipfstexthash;
     var ipfsimagehash = req.body.ipfsimagehash;
     var addedtext = req.body.addedtext;
-	var jsonipfshash = req.body.jsonipfshash;
+    var jsonipfshash = req.body.jsonipfshash;
 // build Json
 
 console.log(blockchain);
@@ -192,6 +192,25 @@ pool.query(sqlinsert, (err, res) => {
     console.log(err, res);
     pool.end();
 });
+
+	// insert into elasticsearch
+console.log("** insert into es");	
+ client.index({
+     index: 'blockchain',
+     type: 'uid',	 
+     id: ipfs_key,
+     body: {
+         "wallet": wallet,
+         "blockchainnetwork": blockchain,
+         "ipfsimage": ipfsimagehash,
+         "ipfstext": ipfstexthash,
+         "wordindex": wordindex
+     }
+ }, function(err, resp, status) {
+     console.log(resp);
+	  console.log(err);
+
+ });
 
 
   //  pg.connect(connectionString,function(err,client,done) {
